@@ -3,9 +3,11 @@ package routers
 import (
 	"todo-api/controllers"
 
-	"github.com/beego/beego/v2/server/web"
+	beego "github.com/beego/beego/v2/server/web"
 )
 
 func init() {
-	web.Router("/health", &controllers.HealthController{})
+	beego.Router("/health", &controllers.HealthController{})
+
+	beego.Router("/tasks", &controllers.TaskController{}, "post:Create")
 }
