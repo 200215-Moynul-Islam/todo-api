@@ -20,3 +20,23 @@ var tasks = make(map[uuid.UUID]Task)
 func CreateTask(task Task) {
 	tasks[task.ID] = task
 }
+
+func GetTasks(status string, page, limit int) []Task {
+	var filteredTasks []Task
+
+	for _, task := range tasks {
+		if status == "" || task.Status == status {
+			filteredTasks = append(filteredTasks, task)
+		}
+	}
+
+	start := (page - 1) * limit
+	if start >= len(filteredTasks) {
+		return []Task{}
+	}
+
+	// Calculate end index.
+	end := min(start+limit, len(filteredTasks))
+
+	return filteredTasks[start:end]
+}
