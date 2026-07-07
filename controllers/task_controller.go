@@ -48,3 +48,23 @@ func (c *TaskController) Create() {
 
 	c.SendSuccess(http.StatusCreated, "Task created successfully", task)
 }
+
+func (c *TaskController) GetAll() {
+	status := strings.TrimSpace(c.GetString("status"))
+
+	page, err := c.GetInt("page", 1)
+	if err != nil || page < 1 {
+		c.SendError(http.StatusBadRequest, "Invalid page")
+		return
+	}
+
+	limit, err := c.GetInt("limit", 10)
+	if err != nil || limit < 1 {
+		c.SendError(http.StatusBadRequest, "Invalid limit")
+		return
+	}
+
+	tasks := models.GetTasks(status, page, limit)
+
+	c.SendSuccess(http.StatusOK, "Tasks retrieved successfully", tasks)
+}

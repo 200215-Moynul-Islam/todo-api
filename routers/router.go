@@ -9,5 +9,5 @@ import (
 func init() {
 	beego.Router("/health", &controllers.HealthController{})
 
-	beego.Router("/tasks", &controllers.TaskController{}, "post:Create")
+	beego.Router("/tasks", &controllers.TaskController{}, "get:GetAll;post:Create")
 }
