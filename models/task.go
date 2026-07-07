@@ -40,3 +40,8 @@ func GetTasks(status string, page, limit int) []Task {
 
 	return filteredTasks[start:end]
 }
+
+func GetTaskByID(id uuid.UUID) (Task, bool) {
+	task, exists := tasks[id]
+	return task, exists
+}
