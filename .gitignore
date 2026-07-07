@@ -1,0 +1,6 @@
+# Binaries
+todo-api
+*.exe
+
+# Configuration files
+app.conf
