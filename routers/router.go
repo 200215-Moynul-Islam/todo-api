@@ -10,5 +10,5 @@ func init() {
 	beego.Router("/health", &controllers.HealthController{})
 
 	beego.Router("/tasks", &controllers.TaskController{}, "get:GetAll;post:Create")
-	beego.Router("/tasks/:id", &controllers.TaskController{}, "get:GetByID")
+	beego.Router("/tasks/:id", &controllers.TaskController{}, "get:GetByID;delete:Delete")
 }

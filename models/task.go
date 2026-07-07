@@ -45,3 +45,12 @@ func GetTaskByID(id uuid.UUID) (Task, bool) {
 	task, exists := tasks[id]
 	return task, exists
 }
+
+func DeleteTask(id uuid.UUID) bool {
+	if _, exists := tasks[id]; !exists {
+		return false
+	}
+
+	delete(tasks, id)
+	return true
+}
