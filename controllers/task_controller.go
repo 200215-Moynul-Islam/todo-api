@@ -68,3 +68,21 @@ func (c *TaskController) GetAll() {
 
 	c.SendSuccess(http.StatusOK, "Tasks retrieved successfully", tasks)
 }
+
+func (c *TaskController) GetByID() {
+	id := c.Ctx.Input.Param(":id")
+
+	taskID, err := uuid.Parse(id)
+	if err != nil {
+		c.SendError(http.StatusBadRequest, "Invalid task id")
+		return
+	}
+
+	task, exists := models.GetTaskByID(taskID)
+	if !exists {
+		c.SendError(http.StatusNotFound, "Task not found")
+		return
+	}
+
+	c.SendSuccess(http.StatusOK, "Task retrieved successfully", task)
+}
