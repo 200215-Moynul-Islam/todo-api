@@ -86,3 +86,20 @@ func (c *TaskController) GetByID() {
 
 	c.SendSuccess(http.StatusOK, "Task retrieved successfully", task)
 }
+
+func (c *TaskController) Delete() {
+	id := c.Ctx.Input.Param(":id")
+
+	taskID, err := uuid.Parse(id)
+	if err != nil {
+		c.SendError(http.StatusBadRequest, "Invalid task id")
+		return
+	}
+
+	if !models.DeleteTask(taskID) {
+		c.SendError(http.StatusNotFound, "Task not found")
+		return
+	}
+
+	c.SendSuccess(http.StatusOK, "Task deleted successfully", nil)
+}
