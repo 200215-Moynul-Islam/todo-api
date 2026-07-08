@@ -10,6 +10,7 @@ type TaskRepository interface {
 	Create(task *models.Task) error
 	GetAll(status string, page, limit int) ([]models.Task, error)
 	GetByID(id int) (*models.Task, error)
+	Update(task *models.Task) error
 	Delete(id int) (bool, error)
 }
 
@@ -39,7 +40,7 @@ func (r *postgresTaskRepository) GetAll(status string, page, limit int) ([]model
 	// Apply offset pagination calculation
 	offset := (page - 1) * limit
 	_, err := qs.Limit(limit, offset).All(&tasks)
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +59,12 @@ func (r *postgresTaskRepository) GetByID(id int) (*models.Task, error) {
 		return nil, err
 	}
 	return task, nil
+}
+
+func (r *postgresTaskRepository) Update(task *models.Task) error {
+	o := orm.NewOrm()
+	_, err := o.Update(task, "title", "description", "status", "updated_at")
+	return err
 }
 
 func (r *postgresTaskRepository) Delete(id int) (bool, error) {

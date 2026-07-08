@@ -20,6 +20,12 @@ type CreateTaskRequest struct {
 	Description string `json:"description"`
 }
 
+type UpdateTaskRequest struct {
+	Title       *string `json:"title"`
+	Description *string `json:"description"`
+	Status      *string `json:"status"`
+}
+
 func (c *TaskController) Create() {
 	var req CreateTaskRequest
 
@@ -85,6 +91,49 @@ func (c *TaskController) GetByID() {
 	}
 
 	c.SendSuccess(http.StatusOK, "Task retrieved successfully", task)
+}
+
+func (c *TaskController) Update() {
+	id, err := c.GetInt(":id")
+	if err != nil || id <= 0 {
+		c.SendError(http.StatusBadRequest, "Invalid task id format")
+		return
+	}
+
+	var req UpdateTaskRequest
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
+		c.SendError(http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.Title == nil && req.Description == nil && req.Status == nil {
+		c.SendError(http.StatusBadRequest, "At least one task field is required")
+		return
+	}
+
+	if req.Title != nil && strings.TrimSpace(*req.Title) == "" {
+		c.SendError(http.StatusBadRequest, "Title is required")
+		return
+	}
+
+	if req.Status != nil && strings.TrimSpace(*req.Status) == "" {
+		c.SendError(http.StatusBadRequest, "Status is required")
+		return
+	}
+
+	task, err := taskService.UpdateTask(id, req.Title, req.Description, req.Status)
+	if err != nil {
+		c.SendError(http.StatusInternalServerError, "Failed to update task")
+		return
+	}
+
+	if task == nil {
+		c.SendError(http.StatusNotFound, "Task not found")
+		return
+	}
+
+	c.SendSuccess(http.StatusOK, "Task updated successfully", task)
 }
 
 func (c *TaskController) Delete() {
