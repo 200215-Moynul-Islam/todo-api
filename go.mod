@@ -4,7 +4,10 @@ go 1.26
 
 require github.com/beego/beego/v2 v2.1.0
 
-require github.com/google/uuid v1.2.0
+require (
+	github.com/google/uuid v1.2.0
+	github.com/lib/pq v1.10.5
+)
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect

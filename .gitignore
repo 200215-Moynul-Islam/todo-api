@@ -4,3 +4,7 @@ todo-api
 
 # Configuration files
 app.conf
+.env
+
+# VS Code settings
+.vscode/

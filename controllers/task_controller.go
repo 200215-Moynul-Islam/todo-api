@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-	"time"
 
-	"github.com/google/uuid"
-
-	"todo-api/models"
+	"todo-api/repositories"
+	"todo-api/services"
 )
+
+var taskService = services.NewTaskService(repositories.NewTaskRepository())
 
 type TaskController struct {
 	BaseController
@@ -33,18 +33,11 @@ func (c *TaskController) Create() {
 		return
 	}
 
-	now := time.Now().UTC()
-
-	task := models.Task{
-		ID:          uuid.New(),
-		Title:       strings.TrimSpace(req.Title),
-		Description: strings.TrimSpace(req.Description),
-		Status:      "pending",
-		CreatedAt:   now,
-		UpdatedAt:   now,
+	task, err := taskService.CreateTask(req.Title, req.Description)
+	if err != nil {
+		c.SendError(http.StatusInternalServerError, "Failed to create task")
+		return
 	}
-
-	models.CreateTask(task)
 
 	c.SendSuccess(http.StatusCreated, "Task created successfully", task)
 }
@@ -54,32 +47,39 @@ func (c *TaskController) GetAll() {
 
 	page, err := c.GetInt("page", 1)
 	if err != nil || page < 1 {
-		c.SendError(http.StatusBadRequest, "Invalid page")
+		c.SendError(http.StatusBadRequest, "Invalid page parameters")
 		return
 	}
 
 	limit, err := c.GetInt("limit", 10)
 	if err != nil || limit < 1 {
-		c.SendError(http.StatusBadRequest, "Invalid limit")
+		c.SendError(http.StatusBadRequest, "Invalid limit parameters")
 		return
 	}
 
-	tasks := models.GetTasks(status, page, limit)
+	tasks, err := taskService.GetAllTasks(status, page, limit)
+	if err != nil {
+		c.SendError(http.StatusInternalServerError, "Failed to retrieve tasks")
+		return
+	}
 
 	c.SendSuccess(http.StatusOK, "Tasks retrieved successfully", tasks)
 }
 
 func (c *TaskController) GetByID() {
-	id := c.Ctx.Input.Param(":id")
-
-	taskID, err := uuid.Parse(id)
-	if err != nil {
-		c.SendError(http.StatusBadRequest, "Invalid task id")
+	id, err := c.GetInt(":id")
+	if err != nil || id <= 0 {
+		c.SendError(http.StatusBadRequest, "Invalid task id format")
 		return
 	}
 
-	task, exists := models.GetTaskByID(taskID)
-	if !exists {
+	task, err := taskService.GetTaskByID(id)
+	if err != nil {
+		c.SendError(http.StatusInternalServerError, "Failed to retrieve task")
+		return
+	}
+
+	if task == nil {
 		c.SendError(http.StatusNotFound, "Task not found")
 		return
 	}
@@ -88,15 +88,19 @@ func (c *TaskController) GetByID() {
 }
 
 func (c *TaskController) Delete() {
-	id := c.Ctx.Input.Param(":id")
-
-	taskID, err := uuid.Parse(id)
-	if err != nil {
-		c.SendError(http.StatusBadRequest, "Invalid task id")
+	id, err := c.GetInt(":id")
+	if err != nil || id <= 0 {
+		c.SendError(http.StatusBadRequest, "Invalid task id format")
 		return
 	}
 
-	if !models.DeleteTask(taskID) {
+	ok, err := taskService.DeleteTask(id)
+	if err != nil {
+		c.SendError(http.StatusInternalServerError, "Failed to delete task")
+		return
+	}
+
+	if !ok {
 		c.SendError(http.StatusNotFound, "Task not found")
 		return
 	}
