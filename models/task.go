@@ -15,6 +15,11 @@ type Task struct {
 	UpdatedAt   time.Time `orm:"column(updated_at);auto_now;type(timestamp)" json:"updated_at"`
 }
 
+// Set the table name
+func (t *Task) TableName() string {
+	return "tasks"
+}
+
 func init() {
 	orm.RegisterModel(new(Task))
 }
