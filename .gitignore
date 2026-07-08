@@ -4,3 +4,4 @@ todo-api
 
 # Configuration files
 app.conf
+.env
