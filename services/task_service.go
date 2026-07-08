@@ -10,6 +10,7 @@ type TaskService interface {
 	CreateTask(title, description string) (*models.Task, error)
 	GetAllTasks(status string, page, limit int) ([]models.Task, error)
 	GetTaskByID(id int) (*models.Task, error)
+	UpdateTask(id int, title, description, status *string) (*models.Task, error)
 	DeleteTask(id int) (bool, error)
 }
 
@@ -43,6 +44,28 @@ func (s *taskService) GetAllTasks(status string, page, limit int) ([]models.Task
 
 func (s *taskService) GetTaskByID(id int) (*models.Task, error) {
 	return s.repo.GetByID(id)
+}
+
+func (s *taskService) UpdateTask(id int, title, description, status *string) (*models.Task, error) {
+	task, err := s.repo.GetByID(id)
+	if err != nil || task == nil {
+		return task, err
+	}
+
+	if title != nil {
+		task.Title = strings.TrimSpace(*title)
+	}
+	if description != nil {
+		task.Description = strings.TrimSpace(*description)
+	}
+	if status != nil {
+		task.Status = strings.TrimSpace(*status)
+	}
+
+	if err := s.repo.Update(task); err != nil {
+		return nil, err
+	}
+	return task, nil
 }
 
 func (s *taskService) DeleteTask(id int) (bool, error) {
