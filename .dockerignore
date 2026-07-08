@@ -1,0 +1,5 @@
+.git
+.gitignore
+todo-api
+*.exe
+.vscode/
