@@ -5,8 +5,9 @@ go 1.26
 require github.com/beego/beego/v2 v2.1.0
 
 require (
-	github.com/google/uuid v1.2.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/lib/pq v1.10.5
+	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd
 )
 
 require (
@@ -23,7 +24,6 @@ require (
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/shiena/ansicolor v0.0.0-20200904210342-c7312218db18 // indirect
-	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
