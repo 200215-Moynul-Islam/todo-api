@@ -7,11 +7,11 @@ import (
 )
 
 type TaskService interface {
-	CreateTask(title, description string) (*models.Task, error)
-	GetAllTasks(status string, page, limit int) ([]models.Task, error)
-	GetTaskByID(id int) (*models.Task, error)
-	UpdateTask(id int, title, description, status *string) (*models.Task, error)
-	DeleteTask(id int) (bool, error)
+	CreateTask(userID int, title, description string) (*models.Task, error)
+	GetAllTasks(userID int, status string, page, limit int) ([]models.Task, error)
+	GetTaskByID(userID int, id int) (*models.Task, error)
+	UpdateTask(userID int, id int, title, description, status *string) (*models.Task, error)
+	DeleteTask(userID int, id int) (bool, error)
 }
 
 type taskService struct {
@@ -24,11 +24,12 @@ func NewTaskService(repo repositories.TaskRepository) TaskService {
 	}
 }
 
-func (s *taskService) CreateTask(title, description string) (*models.Task, error) {
+func (s *taskService) CreateTask(userID int, title, description string) (*models.Task, error) {
 	task := &models.Task{
 		Title:       strings.TrimSpace(title),
 		Description: strings.TrimSpace(description),
 		Status:      "pending",
+		User:        &models.User{ID: userID},
 	}
 
 	err := s.repo.Create(task)
@@ -38,18 +39,30 @@ func (s *taskService) CreateTask(title, description string) (*models.Task, error
 	return task, nil
 }
 
-func (s *taskService) GetAllTasks(status string, page, limit int) ([]models.Task, error) {
-	return s.repo.GetAll(strings.TrimSpace(status), page, limit)
+func (s *taskService) GetAllTasks(userID int, status string, page, limit int) ([]models.Task, error) {
+	return s.repo.GetAll(userID, strings.TrimSpace(status), page, limit)
 }
 
-func (s *taskService) GetTaskByID(id int) (*models.Task, error) {
-	return s.repo.GetByID(id)
-}
-
-func (s *taskService) UpdateTask(id int, title, description, status *string) (*models.Task, error) {
+func (s *taskService) GetTaskByID(userID int, id int) (*models.Task, error) {
 	task, err := s.repo.GetByID(id)
 	if err != nil || task == nil {
-		return task, err
+		return nil, err
+	}
+	// Check ownership
+	if task.User == nil || task.User.ID != userID {
+		return nil, nil // Return nil if it doesn't belong to the user
+	}
+	return task, nil
+}
+
+func (s *taskService) UpdateTask(userID int, id int, title, description, status *string) (*models.Task, error) {
+	task, err := s.repo.GetByID(id)
+	if err != nil || task == nil {
+		return nil, err
+	}
+	// Check ownership
+	if task.User == nil || task.User.ID != userID {
+		return nil, nil
 	}
 
 	if title != nil {
@@ -68,6 +81,15 @@ func (s *taskService) UpdateTask(id int, title, description, status *string) (*m
 	return task, nil
 }
 
-func (s *taskService) DeleteTask(id int) (bool, error) {
+func (s *taskService) DeleteTask(userID int, id int) (bool, error) {
+	task, err := s.repo.GetByID(id)
+	if err != nil || task == nil {
+		return false, err
+	}
+	// Check ownership
+	if task.User == nil || task.User.ID != userID {
+		return false, nil
+	}
+
 	return s.repo.Delete(id)
 }
