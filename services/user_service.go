@@ -6,21 +6,24 @@ import (
 	"strings"
 	"todo-api/models"
 	"todo-api/repositories"
+	"todo-api/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 var (
-	ErrNameRequired     = errors.New("name is required")
-	ErrEmailRequired    = errors.New("email is required")
-	ErrPasswordRequired = errors.New("password is required")
-	ErrInvalidEmail     = errors.New("invalid email format")
-	ErrEmailExists      = errors.New("email already exists")
-	ErrPasswordTooShort = errors.New("password must be at least 6 characters long")
+	ErrNameRequired       = errors.New("name is required")
+	ErrEmailRequired      = errors.New("email is required")
+	ErrPasswordRequired   = errors.New("password is required")
+	ErrInvalidEmail       = errors.New("invalid email format")
+	ErrEmailExists        = errors.New("email already exists")
+	ErrPasswordTooShort   = errors.New("password must be at least 6 characters long")
+	ErrInvalidCredentials = errors.New("invalid email or password")
 )
 
 type UserService interface {
 	RegisterUser(name, email, password string) (*models.User, error)
+	LoginUser(email, password string) (string, error)
 }
 
 type userService struct {
@@ -83,4 +86,37 @@ func (s *userService) RegisterUser(name, email, password string) (*models.User, 
 	}
 
 	return user, nil
+}
+
+func (s *userService) LoginUser(email, password string) (string, error) {
+	email = strings.TrimSpace(strings.ToLower(email))
+
+	if email == "" {
+		return "", ErrEmailRequired
+	}
+	if password == "" {
+		return "", ErrPasswordRequired
+	}
+
+	user, err := s.repo.GetByEmail(email)
+	if err != nil {
+		return "", err
+	}
+	if user == nil {
+		return "", ErrInvalidCredentials
+	}
+
+	// Compare password hash
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return "", ErrInvalidCredentials
+	}
+
+	// Generate JWT token
+	token, err := utils.GenerateToken(user.ID)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
