@@ -20,6 +20,15 @@ type RegisterRequest struct {
 	Password string `json:"password"`
 }
 
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type LoginResponse struct {
+	Token string `json:"token"`
+}
+
 func (c *AuthController) Register() {
 	var req RegisterRequest
 
@@ -46,4 +55,29 @@ func (c *AuthController) Register() {
 	}
 
 	c.SendSuccess(http.StatusCreated, "User registered successfully", user)
+}
+
+func (c *AuthController) Login() {
+	var req LoginRequest
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
+		c.SendError(http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	token, err := userService.LoginUser(req.Email, req.Password)
+	if err != nil {
+		switch {
+		case errors.Is(err, services.ErrEmailRequired),
+			errors.Is(err, services.ErrPasswordRequired):
+			c.SendError(http.StatusBadRequest, err.Error())
+		case errors.Is(err, services.ErrInvalidCredentials):
+			c.SendError(http.StatusUnauthorized, err.Error())
+		default:
+			c.SendError(http.StatusInternalServerError, "Failed to log in")
+		}
+		return
+	}
+
+	c.SendSuccess(http.StatusOK, "Login successful", LoginResponse{Token: token})
 }
