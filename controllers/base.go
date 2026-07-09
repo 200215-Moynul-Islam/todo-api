@@ -1,36 +1,16 @@
 package controllers
 
-import beego "github.com/beego/beego/v2/server/web"
-
-type APIResponse struct {
-	Success bool `json:"success"`
-	Message string `json:"message"`
-	Data interface{} `json:"data,omitempty"`
-}
+import (
+	beego "github.com/beego/beego/v2/server/web"
+)
 
 type BaseController struct {
 	beego.Controller
 }
 
-func (c *BaseController) SendSuccess(status int, message string, data any) {
-	response := APIResponse{
-		Success: true,
-		Message: message,
-		Data: data,
-	}
-
-	c.Ctx.Output.SetStatus(status)
-	c.Data["json"] = response
-	c.ServeJSON()
-}
-
-func (c *BaseController) SendError(status int, message string) {
-	response := APIResponse{
-		Success: false,
-		Message: message,
-	}
-
-	c.Ctx.Output.SetStatus(status)
-	c.Data["json"] = response
-	c.ServeJSON()
+// GetUserID retrieves the authenticated user ID from the request context
+func (c *BaseController) GetUserID() (int, bool) {
+	val := c.Ctx.Input.GetData("userID")
+	userID, ok := val.(int)
+	return userID, ok
 }

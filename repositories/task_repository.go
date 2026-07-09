@@ -8,7 +8,7 @@ import (
 
 type TaskRepository interface {
 	Create(task *models.Task) error
-	GetAll(status string, page, limit int) ([]models.Task, error)
+	GetAll(userID int, status string, page, limit int) ([]models.Task, error)
 	GetByID(id int) (*models.Task, error)
 	Update(task *models.Task) error
 	Delete(id int) (bool, error)
@@ -26,11 +26,11 @@ func (r *postgresTaskRepository) Create(task *models.Task) error {
 	return err
 }
 
-func (r *postgresTaskRepository) GetAll(status string, page, limit int) ([]models.Task, error) {
+func (r *postgresTaskRepository) GetAll(userID int, status string, page, limit int) ([]models.Task, error) {
 	o := orm.NewOrm()
 	var tasks []models.Task
 
-	qs := o.QueryTable(new(models.Task))
+	qs := o.QueryTable(new(models.Task)).Filter("user_id", userID)
 
 	// Apply filtering if provided
 	if status != "" {

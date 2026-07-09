@@ -1,11 +1,14 @@
 package controllers
 
-import "net/http"
+import (
+	"net/http"
+	"todo-api/utils"
+)
 
 type HealthController struct {
 	BaseController
 }
 
 func (c *HealthController) Get() {
-	c.SendSuccess(http.StatusOK, "Server is running", nil)
+	utils.SendJSONResponse(c.Ctx, http.StatusOK, true, "Server is running", nil)
 }
