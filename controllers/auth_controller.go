@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"todo-api/repositories"
 	"todo-api/services"
+	"todo-api/utils"
 )
 
 var userService = services.NewUserService(repositories.NewUserRepository())
@@ -33,7 +34,7 @@ func (c *AuthController) Register() {
 	var req RegisterRequest
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
-		c.SendError(http.StatusBadRequest, "Invalid request body")
+		utils.SendJSONResponse(c.Ctx, http.StatusBadRequest, false, "Invalid request body", nil)
 		return
 	}
 
@@ -45,23 +46,23 @@ func (c *AuthController) Register() {
 			errors.Is(err, services.ErrPasswordRequired),
 			errors.Is(err, services.ErrPasswordTooShort),
 			errors.Is(err, services.ErrInvalidEmail):
-			c.SendError(http.StatusBadRequest, err.Error())
+			utils.SendJSONResponse(c.Ctx, http.StatusBadRequest, false, err.Error(), nil)
 		case errors.Is(err, services.ErrEmailExists):
-			c.SendError(http.StatusConflict, err.Error())
+			utils.SendJSONResponse(c.Ctx, http.StatusConflict, false, err.Error(), nil)
 		default:
-			c.SendError(http.StatusInternalServerError, "Failed to register user")
+			utils.SendJSONResponse(c.Ctx, http.StatusInternalServerError, false, "Failed to register user", nil)
 		}
 		return
 	}
 
-	c.SendSuccess(http.StatusCreated, "User registered successfully", user)
+	utils.SendJSONResponse(c.Ctx, http.StatusCreated, true, "User registered successfully", user)
 }
 
 func (c *AuthController) Login() {
 	var req LoginRequest
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
-		c.SendError(http.StatusBadRequest, "Invalid request body")
+		utils.SendJSONResponse(c.Ctx, http.StatusBadRequest, false, "Invalid request body", nil)
 		return
 	}
 
@@ -70,14 +71,14 @@ func (c *AuthController) Login() {
 		switch {
 		case errors.Is(err, services.ErrEmailRequired),
 			errors.Is(err, services.ErrPasswordRequired):
-			c.SendError(http.StatusBadRequest, err.Error())
+			utils.SendJSONResponse(c.Ctx, http.StatusBadRequest, false, err.Error(), nil)
 		case errors.Is(err, services.ErrInvalidCredentials):
-			c.SendError(http.StatusUnauthorized, err.Error())
+			utils.SendJSONResponse(c.Ctx, http.StatusUnauthorized, false, err.Error(), nil)
 		default:
-			c.SendError(http.StatusInternalServerError, "Failed to log in")
+			utils.SendJSONResponse(c.Ctx, http.StatusInternalServerError, false, "Failed to log in", nil)
 		}
 		return
 	}
 
-	c.SendSuccess(http.StatusOK, "Login successful", LoginResponse{Token: token})
+	utils.SendJSONResponse(c.Ctx, http.StatusOK, true, "Login successful", LoginResponse{Token: token})
 }
