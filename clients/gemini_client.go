@@ -57,7 +57,7 @@ func NewGeminiClient() GeminiClient {
 		apiKey: strings.TrimSpace(apiKey),
 		model:  strings.TrimSpace(model),
 		httpClient: &http.Client{
-			Timeout: 10 * time.Second,
+			Timeout: 60 * time.Second,
 		},
 	}
 }
