@@ -18,5 +18,6 @@ func init() {
 	beego.InsertFilter("/tasks/*", beego.BeforeRouter, middlewares.AuthFilter)
 
 	beego.Router("/tasks", &controllers.TaskController{}, "get:GetAll;post:Create")
+	beego.Router("/tasks/generate-description", &controllers.TaskController{}, "post:GenerateDescription")
 	beego.Router("/tasks/:id", &controllers.TaskController{}, "get:GetByID;put:Update;delete:Delete")
 }

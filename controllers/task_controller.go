@@ -5,12 +5,16 @@ import (
 	"net/http"
 	"strings"
 
+	"todo-api/clients"
 	"todo-api/repositories"
 	"todo-api/services"
 	"todo-api/utils"
 )
 
-var taskService = services.NewTaskService(repositories.NewTaskRepository())
+var taskService = services.NewTaskService(
+	repositories.NewTaskRepository(),
+	clients.NewGeminiClient(),
+)
 
 type TaskController struct {
 	BaseController
@@ -25,6 +29,43 @@ type UpdateTaskRequest struct {
 	Title       *string `json:"title"`
 	Description *string `json:"description"`
 	Status      *string `json:"status"`
+}
+
+type GenerateDescriptionRequest struct {
+	Title string `json:"title"`
+}
+
+type GenerateDescriptionResponse struct {
+	Description string `json:"description"`
+}
+
+// GenerateDescription creates a short, AI-generated description without
+// persisting a task. The caller can review it before creating or updating one.
+func (c *TaskController) GenerateDescription() {
+	if _, ok := c.GetUserID(); !ok {
+		utils.SendJSONResponse(c.Ctx, http.StatusUnauthorized, false, "Unauthorized", nil)
+		return
+	}
+
+	var req GenerateDescriptionRequest
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
+		utils.SendJSONResponse(c.Ctx, http.StatusBadRequest, false, "Invalid request body", nil)
+		return
+	}
+
+	title := strings.TrimSpace(req.Title)
+	if title == "" {
+		utils.SendJSONResponse(c.Ctx, http.StatusBadRequest, false, "Title is required", nil)
+		return
+	}
+
+	description, err := taskService.GenerateDescription(title)
+	if err != nil {
+		utils.SendJSONResponse(c.Ctx, http.StatusBadGateway, false, "Failed to generate description", nil)
+		return
+	}
+
+	utils.SendJSONResponse(c.Ctx, http.StatusOK, true, "Description generated successfully", GenerateDescriptionResponse{Description: description})
 }
 
 func (c *TaskController) Create() {

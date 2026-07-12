@@ -7,6 +7,7 @@ A RESTful To-Do API built with Go and the Beego v2 framework, featuring JWT-base
 - User registration and login with JWT authentication
 - Full CRUD for tasks, scoped per authenticated user
 - Filtering by status and pagination on task listing
+- Gemini-powered task-description generation (maximum two sentences)
 - Standardized JSON response format across all endpoints
 - PostgreSQL with versioned migrations
 - Dockerized setup with automatic migration on startup
@@ -71,7 +72,8 @@ Copy the sample config and update values as needed:
 cp conf/app.conf.sample conf/app.conf
 ```
 
-Set a strong `JWT_SECRET` and adjust `POSTGRES_*` values to match your environment.
+Set a strong `JWT_SECRET`, Gemini API key, and adjust `POSTGRES_*` values to match
+your environment. `GEMINI_MODEL` defaults to `gemini-flash-latest`.
 
 ### 3. Run with Docker
 
@@ -108,6 +110,7 @@ go install github.com/beego/bee/v2@latest
 | GET    | `/tasks/:id`     | Yes           | Get a task by ID             |
 | PUT    | `/tasks/:id`     | Yes           | Update a task                |
 | DELETE | `/tasks/:id`     | Yes           | Delete a task                |
+| POST   | `/tasks/generate-description` | Yes | Generate a task description |
 
 Authenticated requests require an `Authorization: Bearer <token>` header.
 
@@ -136,6 +139,15 @@ curl -X POST http://localhost:8080/tasks \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"title":"Buy groceries","description":"Milk, eggs, bread"}'
+```
+
+**Generate a description**
+
+```bash
+curl -X POST http://localhost:8080/tasks/generate-description \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Prepare sprint demo"}'
 ```
 
 **List tasks**

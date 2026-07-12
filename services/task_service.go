@@ -2,6 +2,7 @@ package services
 
 import (
 	"strings"
+	"todo-api/clients"
 	"todo-api/models"
 	"todo-api/repositories"
 )
@@ -12,15 +13,18 @@ type TaskService interface {
 	GetTaskByID(userID int, id int) (*models.Task, error)
 	UpdateTask(userID int, id int, title, description, status *string) (*models.Task, error)
 	DeleteTask(userID int, id int) (bool, error)
+	GenerateDescription(title string) (string, error)
 }
 
 type taskService struct {
-	repo repositories.TaskRepository
+	repo         repositories.TaskRepository
+	geminiClient clients.GeminiClient
 }
 
-func NewTaskService(repo repositories.TaskRepository) TaskService {
+func NewTaskService(repo repositories.TaskRepository, geminiClient clients.GeminiClient) TaskService {
 	return &taskService{
-		repo: repo,
+		repo:         repo,
+		geminiClient: geminiClient,
 	}
 }
 
@@ -92,4 +96,8 @@ func (s *taskService) DeleteTask(userID int, id int) (bool, error) {
 	}
 
 	return s.repo.Delete(id)
+}
+
+func (s *taskService) GenerateDescription(title string) (string, error) {
+	return s.geminiClient.GenerateDescription(strings.TrimSpace(title))
 }
