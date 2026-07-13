@@ -34,7 +34,7 @@ func (c *AuthController) Register() {
 	var req RegisterRequest
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
-		utils.SendJSONResponse(c.Ctx, http.StatusBadRequest, false, "Invalid request body", nil)
+		utils.SendJSONResponse(c.Ctx, http.StatusBadRequest, false, utils.MsgInvalidRequestBody, nil)
 		return
 	}
 
@@ -50,19 +50,19 @@ func (c *AuthController) Register() {
 		case errors.Is(err, services.ErrEmailExists):
 			utils.SendJSONResponse(c.Ctx, http.StatusConflict, false, err.Error(), nil)
 		default:
-			utils.SendJSONResponse(c.Ctx, http.StatusInternalServerError, false, "Failed to register user", nil)
+			utils.SendJSONResponse(c.Ctx, http.StatusInternalServerError, false, utils.MsgFailedToRegisterUser, nil)
 		}
 		return
 	}
 
-	utils.SendJSONResponse(c.Ctx, http.StatusCreated, true, "User registered successfully", user)
+	utils.SendJSONResponse(c.Ctx, http.StatusCreated, true, utils.MsgUserRegistered, user)
 }
 
 func (c *AuthController) Login() {
 	var req LoginRequest
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
-		utils.SendJSONResponse(c.Ctx, http.StatusBadRequest, false, "Invalid request body", nil)
+		utils.SendJSONResponse(c.Ctx, http.StatusBadRequest, false, utils.MsgInvalidRequestBody, nil)
 		return
 	}
 
@@ -75,10 +75,10 @@ func (c *AuthController) Login() {
 		case errors.Is(err, services.ErrInvalidCredentials):
 			utils.SendJSONResponse(c.Ctx, http.StatusUnauthorized, false, err.Error(), nil)
 		default:
-			utils.SendJSONResponse(c.Ctx, http.StatusInternalServerError, false, "Failed to log in", nil)
+			utils.SendJSONResponse(c.Ctx, http.StatusInternalServerError, false, utils.MsgFailedToLogin, nil)
 		}
 		return
 	}
 
-	utils.SendJSONResponse(c.Ctx, http.StatusOK, true, "Login successful", LoginResponse{Token: token})
+	utils.SendJSONResponse(c.Ctx, http.StatusOK, true, utils.MsgLoginSuccessful, LoginResponse{Token: token})
 }
