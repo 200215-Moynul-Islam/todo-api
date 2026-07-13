@@ -1,0 +1,1646 @@
+{
+  "info": {
+    "_postman_id": "af910838-6116-4eba-8566-68eb520b4e0a",
+    "name": "Todo API",
+    "description": "Production-ready Postman collection for the Todo REST API.\n\nAuthentication: Obtain a JWT via Auth/Login. Protected endpoints require Bearer {{access_token}}.\nBase URL: {{base_url}}\nResponse format: {success,message,data}\n",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "50422520"
+  },
+  "item": [
+    {
+      "name": "Task Operations",
+      "item": [
+        {
+          "name": "Create Task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Finish Backend Architecture\",\n    \"description\": \"Implement the Service and Repository layers using Beego ORM and Postgres.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tasks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks"
+              ]
+            },
+            "description": "Creates a task for the authenticated user.\n\nAuthentication: Bearer JWT.\n\nBody:\n- title (string, required)\n- description (string, optional)\n\nReturns 201 on success."
+          },
+          "response": [
+            {
+              "name": "401 Unauthorized",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Finish Backend Architecture\",\n    \"description\": \"Implement the Service and Repository layers using Beego ORM and Postgres.\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/tasks",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks"
+                  ]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "54"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 05:47:22 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"\",\n    \"description\": \"\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/tasks",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks"
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "47"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:00:37 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Title is required\"\n}"
+            },
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Finish Backend Architecture\",\n    \"description\": \"Implement the Service and Repository layers using Beego ORM and Postgres.\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/tasks",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "418"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:02:13 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Task created successfully\",\n    \"data\": {\n        \"id\": 2,\n        \"title\": \"Finish Backend Architecture\",\n        \"description\": \"Implement the Service and Repository layers using Beego ORM and Postgres.\",\n        \"status\": \"pending\",\n        \"user\": {\n            \"id\": 1,\n            \"name\": \"\",\n            \"email\": \"\",\n            \"created_at\": \"0001-01-01T00:00:00Z\",\n            \"updated_at\": \"0001-01-01T00:00:00Z\"\n        },\n        \"created_at\": \"2026-07-13T06:02:13.379922939Z\",\n        \"updated_at\": \"2026-07-13T06:02:13.379924024Z\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get All Tasks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tasks?status=pending&page=1&limit=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "Filter by task status ('pending' or 'done')"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Pagination page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of elements per page"
+                }
+              ]
+            },
+            "description": "Returns authenticated user's tasks.\n\nAuthentication: Bearer JWT.\n\nQuery:\n- status: pending|done (optional)\n- page: integer >=1\n- limit: integer >0"
+          },
+          "response": [
+            {
+              "name": "401 Unauthorized",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/tasks?status=pending&page=1&limit=10",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "pending",
+                      "description": "Filter by task status ('pending' or 'done')"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "description": "Pagination page number"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10",
+                      "description": "Number of elements per page"
+                    }
+                  ]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "54"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 05:47:46 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "200 Ok",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/tasks?status=pendingsd&page=1&limit=10",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "pendingsd",
+                      "description": "Filter by task status ('pending' or 'done')"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "description": "Pagination page number"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "10",
+                      "description": "Number of elements per page"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "417"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:02:56 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Tasks retrieved successfully\",\n    \"data\": [\n        {\n            \"id\": 2,\n            \"title\": \"Finish Backend Architecture\",\n            \"description\": \"Implement the Service and Repository layers using Beego ORM and Postgres.\",\n            \"status\": \"pending\",\n            \"user\": {\n                \"id\": 1,\n                \"name\": \"\",\n                \"email\": \"\",\n                \"created_at\": \"0001-01-01T00:00:00Z\",\n                \"updated_at\": \"0001-01-01T00:00:00Z\"\n            },\n            \"created_at\": \"2026-07-13T06:02:13.379923Z\",\n            \"updated_at\": \"2026-07-13T06:02:13.379924Z\"\n        }\n    ]\n}"
+            },
+            {
+              "name": "400 Invalid Query Params",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/tasks?status=pending&page=1&limit=-5",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "pending",
+                      "description": "Filter by task status ('pending' or 'done')"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "description": "Pagination page number"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "-5",
+                      "description": "Number of elements per page"
+                    }
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "54"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:04:18 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Invalid limit parameters\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Task By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tasks/{{task_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                "{{task_id}}"
+              ]
+            },
+            "description": "Returns a task by ID.\n\nAuthentication: Bearer JWT.\n\nPath:\n- task_id: positive integer."
+          },
+          "response": [
+            {
+              "name": "401 Unauthorized",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/tasks/5",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "5"
+                  ]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "54"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 05:48:15 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/tasks/5",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "5"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "44"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:05:53 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Task not found\"\n}"
+            },
+            {
+              "name": "400 Invalid Query Params",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/tasks/-5",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "-5"
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "52"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:07:07 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Invalid task id format\"\n}"
+            },
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/tasks/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "1"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "410"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:08:13 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Task retrieved successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"title\": \"Finish Backend Architecture\",\n        \"description\": \"Implement the Service and Repository layers using Beego ORM and Postgres.\",\n        \"status\": \"done\",\n        \"user\": {\n            \"id\": 1,\n            \"name\": \"\",\n            \"email\": \"\",\n            \"created_at\": \"0001-01-01T00:00:00Z\",\n            \"updated_at\": \"0001-01-01T00:00:00Z\"\n        },\n        \"created_at\": \"2026-07-09T10:04:12.490437Z\",\n        \"updated_at\": \"2026-07-09T10:10:01.16426Z\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tasks/{{task_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                "{{task_id}}"
+              ]
+            },
+            "description": "Deletes a task.\n\nAuthentication: Bearer JWT.\n\nPath:\n- task_id: positive integer."
+          },
+          "response": [
+            {
+              "name": "401 Unauthorized",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/tasks/5",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "5"
+                  ]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "54"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 05:48:33 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/tasks/5",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "5"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "44"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:08:39 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Task not found\"\n}"
+            },
+            {
+              "name": "400 Invalid Query Params",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/tasks/-5",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "-5"
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "52"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:08:59 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Invalid task id format\"\n}"
+            },
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/tasks/2",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "2"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "54"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:09:33 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Task deleted successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Finish Backend Architecture\",\n    \"description\": \"Implement the Service and Repository layers using Beego ORM and Postgres.\",\n    \"status\": \"done\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/tasks/{{task_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                "{{task_id}}"
+              ]
+            },
+            "description": "Updates a task.\n\nAuthentication: Bearer JWT.\n\nPath:\n- task_id: positive integer.\n\nBody:\n- title (required)\n- description (optional)\n- status: pending|done"
+          },
+          "response": [
+            {
+              "name": "401 Unauthorized",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Finish Backend Architecture\",\n    \"description\": \"Implement the Service and Repository layers using Beego ORM and Postgres.\",\n    \"status\": \"done\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/tasks/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "1"
+                  ]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "54"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 05:49:07 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Finish Backend Architecture\",\n    \"description\": \"Implement the Service and Repository layers using Beego ORM and Postgres.\",\n    \"status\": \"done\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/tasks/5",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "5"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "44"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:09:55 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Task not found\"\n}"
+            },
+            {
+              "name": "400 Invalid Query Params",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Finish Backend Architecture\",\n    \"description\": \"Implement the Service and Repository layers using Beego ORM and Postgres.\",\n    \"status\": \"done\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/tasks/-5",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "-5"
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "52"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:10:22 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Invalid task id format\"\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"\",\n    \"description\": \"\",\n    \"status\": \"\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/tasks/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "1"
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "47"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:11:31 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Title is required\"\n}"
+            },
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Finish Backend Architecture - Modified\",\n    \"description\": \"Implement the Service and Repository layers using Beego ORM and Postgres.\",\n    \"status\": \"done\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/tasks/1",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "1"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "423"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:12:07 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Task updated successfully\",\n    \"data\": {\n        \"id\": 1,\n        \"title\": \"Finish Backend Architecture - Modified\",\n        \"description\": \"Implement the Service and Repository layers using Beego ORM and Postgres.\",\n        \"status\": \"done\",\n        \"user\": {\n            \"id\": 1,\n            \"name\": \"\",\n            \"email\": \"\",\n            \"created_at\": \"0001-01-01T00:00:00Z\",\n            \"updated_at\": \"0001-01-01T00:00:00Z\"\n        },\n        \"created_at\": \"2026-07-09T10:04:12.490437Z\",\n        \"updated_at\": \"2026-07-13T06:12:07.980531443Z\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Generate Description",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Finish Backend Architecture\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/tasks/generate-description",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                "generate-description"
+              ]
+            },
+            "description": "Generates a task description using Gemini AI.\n\nAuthentication: Bearer JWT.\n\nBody:\n- title (required)"
+          },
+          "response": [
+            {
+              "name": "401 Unauthorized",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Finish Backend Architecture\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/tasks/generate-description",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "generate-description"
+                  ]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "54"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 05:49:27 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Invalid or expired token\"\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/tasks/generate-description",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "generate-description"
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "47"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:14:44 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Title is required\"\n}"
+            },
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Finish Backend Architecture\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/tasks/generate-description",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "tasks",
+                    "generate-description"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "347"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 06:22:00 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Description generated successfully\",\n    \"data\": {\n        \"description\": \"Finalize the database schema, API endpoints, and system integration patterns to establish a secure and scalable backend foundation. Document the completed architecture to provide the development team with a clear blueprint for upcoming implementation phases.\"\n    }\n}"
+            }
+          ]
+        }
+      ],
+      "description": "Endpoints for managing authenticated user's tasks.",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{access_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe2@example.com\",\n  \"password\": \"Password@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Creates a new user account.\n\nAuthentication: Public\n\nRequest Body:\n- name (string, required): User's full name.\n- email (string, required): Valid email address. Must be unique.\n- password (string, required): Minimum 6 characters.\n\nResponses:\n- 201 Created: User registered.\n- 400 Bad Request: Validation failed.\n- 409 Conflict: Email already exists.\n"
+          },
+          "response": [
+            {
+              "name": "409 Email Already Exists",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password@123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ]
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "50"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 05:42:26 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"email already exists\"\n}"
+            },
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe2@example.com\",\n  \"password\": \"Password@123\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "215"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 05:43:18 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"User registered successfully\",\n    \"data\": {\n        \"id\": 2,\n        \"name\": \"John Doe\",\n        \"email\": \"john.doe2@example.com\",\n        \"created_at\": \"2026-07-13T05:43:18.058121135Z\",\n        \"updated_at\": \"2026-07-13T05:43:18.058123509Z\"\n    }\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe2@example.com\",\n  \"password\": \"\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/register",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "register"
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "Text",
+              "header": [
+                {
+                  "key": "Content-Length",
+                  "value": "50"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Server",
+                  "value": "beegoServer:2.0.0"
+                },
+                {
+                  "key": "Date",
+                  "value": "Mon, 13 Jul 2026 05:51:23 GMT"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"password is required\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set(\"access_token\", json.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Authenticates a user and returns a JWT access token.\n\nAuthentication: Public\n\nRequest Body:\n- email (string, required)\n- password (string, required)\n\nOn success, the collection automatically stores data.token into {{access_token}}.\n"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password@123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "Authenticates a user and returns a JWT access token.\n\nAuthentication: Public\n\nRequest Body:\n- email (string, required)\n- password (string, required)\n\nOn success, the collection automatically stores data.token into {{access_token}}.\n"
+              },
+              "_postman_previewlanguage": "Text",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            },
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password@123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "Authenticates a user and returns a JWT access token.\n\nAuthentication: Public\n\nRequest Body:\n- email (string, required)\n- password (string, required)\n\nOn success, the collection automatically stores data.token into {{access_token}}.\n"
+              },
+              "_postman_previewlanguage": "Text",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            },
+            {
+              "name": "401 Unauthorized",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password@123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": [
+                    "{{base_url}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "Authenticates a user and returns a JWT access token.\n\nAuthentication: Public\n\nRequest Body:\n- email (string, required)\n- password (string, required)\n\nOn success, the collection automatically stores data.token into {{access_token}}.\n"
+              },
+              "_postman_previewlanguage": "Text",
+              "header": [],
+              "cookie": [],
+              "body": ""
+            }
+          ]
+        }
+      ],
+      "description": "Authentication endpoints. Register a new user or obtain a JWT access token."
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "Text",
+          "header": [
+            {
+              "key": "Content-Length",
+              "value": "46"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Server",
+              "value": "beegoServer:2.0.0"
+            },
+            {
+              "key": "Date",
+              "value": "Mon, 13 Jul 2026 05:28:54 GMT"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"message\": \"Server is running\"\n}"
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "task_id",
+      "value": "1"
+    }
+  ]
+}
