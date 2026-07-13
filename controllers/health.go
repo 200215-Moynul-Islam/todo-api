@@ -10,5 +10,5 @@ type HealthController struct {
 }
 
 func (c *HealthController) Get() {
-	utils.SendJSONResponse(c.Ctx, http.StatusOK, true, "Server is running", nil)
+	utils.SendJSONResponse(c.Ctx, http.StatusOK, true, utils.MsgServerRunning, nil)
 }
