@@ -6,6 +6,7 @@ import (
 
 	"todo-api/mocks"
 	"todo-api/models"
+	"todo-api/utils"
 
 	"go.uber.org/mock/gomock"
 	"golang.org/x/crypto/bcrypt"
@@ -243,5 +244,189 @@ func TestUserService_RegisterUser_Success(t *testing.T) {
 		[]byte(inputPassword),
 	); err != nil {
 		t.Error("returned password hash is invalid")
+	}
+}
+
+func TestUserService_LoginUser_Validation(t *testing.T) {
+	tests := []struct {
+		name     string
+		email    string
+		password string
+		wantErr  error
+	}{
+		{
+			name:     "empty email",
+			email:    "",
+			password: "password123",
+			wantErr:  ErrEmailRequired,
+		},
+		{
+			name:     "empty password",
+			email:    "john@example.com",
+			password: "",
+			wantErr:  ErrPasswordRequired,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockUserRepository(ctrl)
+			service := NewUserService(mockRepo)
+
+			token, err := service.LoginUser(
+				tt.email,
+				tt.password,
+			)
+
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("expected error %v, got %v", tt.wantErr, err)
+			}
+
+			if token != "" {
+				t.Fatalf("expected empty token, got %q", token)
+			}
+		})
+	}
+}
+
+func TestUserService_LoginUser_GetByEmailError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockUserRepository(ctrl)
+	service := NewUserService(mockRepo)
+
+	expectedErr := errors.New("database error")
+
+	mockRepo.EXPECT().
+		GetByEmail("john@example.com").
+		Return(nil, expectedErr)
+
+	token, err := service.LoginUser(
+		"john@example.com",
+		"password123",
+	)
+
+	if !errors.Is(err, expectedErr) {
+		t.Fatalf("expected error %v, got %v", expectedErr, err)
+	}
+
+	if token != "" {
+		t.Fatalf("expected empty token, got %q", token)
+	}
+}
+
+func TestUserService_LoginUser_UserNotFound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockUserRepository(ctrl)
+	service := NewUserService(mockRepo)
+
+	mockRepo.EXPECT().
+		GetByEmail("john@example.com").
+		Return(nil, nil)
+
+	token, err := service.LoginUser(
+		"john@example.com",
+		"password123",
+	)
+
+	if !errors.Is(err, ErrInvalidCredentials) {
+		t.Fatalf("expected error %v, got %v", ErrInvalidCredentials, err)
+	}
+
+	if token != "" {
+		t.Fatalf("expected empty token, got %q", token)
+	}
+}
+
+func TestUserService_LoginUser_InvalidPassword(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockUserRepository(ctrl)
+	service := NewUserService(mockRepo)
+
+	hashedPassword, err := bcrypt.GenerateFromPassword(
+		[]byte("correct-password"),
+		bcrypt.DefaultCost,
+	)
+	if err != nil {
+		t.Fatalf("failed to generate password hash: %v", err)
+	}
+
+	mockRepo.EXPECT().
+		GetByEmail("john@example.com").
+		Return(&models.User{
+			ID:       1,
+			Name:     "John",
+			Email:    "john@example.com",
+			Password: string(hashedPassword),
+		}, nil)
+
+	token, err := service.LoginUser(
+		"john@example.com",
+		"wrong-password",
+	)
+
+	if !errors.Is(err, ErrInvalidCredentials) {
+		t.Fatalf("expected error %v, got %v", ErrInvalidCredentials, err)
+	}
+
+	if token != "" {
+		t.Fatalf("expected empty token, got %q", token)
+	}
+}
+
+func TestUserService_LoginUser_Success(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockUserRepository(ctrl)
+	service := NewUserService(mockRepo)
+
+	password := "password123"
+
+	hashedPassword, err := bcrypt.GenerateFromPassword(
+		[]byte(password),
+		bcrypt.DefaultCost,
+	)
+	if err != nil {
+		t.Fatalf("failed to generate password hash: %v", err)
+	}
+
+	mockRepo.EXPECT().
+		GetByEmail("john@example.com").
+		Return(&models.User{
+			ID:       1,
+			Name:     "John Doe",
+			Email:    "john@example.com",
+			Password: string(hashedPassword),
+		}, nil)
+
+	token, err := service.LoginUser(
+		"John@Example.COM",
+		password,
+	)
+
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if token == "" {
+		t.Fatal("expected non-empty JWT token")
+	}
+
+	userID, err := utils.ValidateToken(token)
+	if err != nil {
+		t.Fatalf("generated token is invalid: %v", err)
+	}
+
+	if userID != 1 {
+		t.Fatalf("expected user ID 1, got %d", userID)
 	}
 }
