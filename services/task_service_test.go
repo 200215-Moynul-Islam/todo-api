@@ -265,3 +265,157 @@ func TestTaskService_GetTaskByID(t *testing.T) {
 		})
 	}
 }
+
+func TestTaskService_UpdateTask(t *testing.T) {
+	newTitle := "  Learn Go Testing  "
+	newDescription := "  Updated description  "
+	newStatus := " completed "
+
+	tests := []struct {
+		name      string
+		userID    int
+		taskID    int
+		title     *string
+		desc      *string
+		status    *string
+		setupMock func(*mocks.MockTaskRepository)
+		wantTask  *models.Task
+		wantErr   error
+	}{
+		{
+			name:   "repository get error",
+			userID: 1,
+			taskID: 1,
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				repo.EXPECT().
+					GetByID(1).
+					Return(nil, errDatabase)
+			},
+			wantErr: errDatabase,
+		},
+		{
+			name:   "task not found",
+			userID: 1,
+			taskID: 1,
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				repo.EXPECT().
+					GetByID(1).
+					Return(nil, nil)
+			},
+		},
+		{
+			name:   "task belongs to another user",
+			userID: 2,
+			taskID: 1,
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				repo.EXPECT().
+					GetByID(1).
+					Return(&models.Task{
+						ID:     1,
+						Title:  "Old",
+						Status: "pending",
+						User:   &models.User{ID: 1},
+					}, nil)
+			},
+		},
+		{
+			name:   "repository update error",
+			userID: 1,
+			taskID: 1,
+			title:  &newTitle,
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				task := &models.Task{
+					ID:     1,
+					Title:  "Old",
+					Status: "pending",
+					User:   &models.User{ID: 1},
+				}
+
+				repo.EXPECT().
+					GetByID(1).
+					Return(task, nil)
+
+				repo.EXPECT().
+					Update(gomock.Any()).
+					Return(errDatabase)
+			},
+			wantErr: errDatabase,
+		},
+		{
+			name:   "update all fields successfully",
+			userID: 1,
+			taskID: 1,
+			title:  &newTitle,
+			desc:   &newDescription,
+			status: &newStatus,
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				task := &models.Task{
+					ID:          1,
+					Title:       "Old",
+					Description: "Old Description",
+					Status:      "pending",
+					User:        &models.User{ID: 1},
+				}
+
+				repo.EXPECT().
+					GetByID(1).
+					Return(task, nil)
+
+				repo.EXPECT().
+					Update(gomock.AssignableToTypeOf(&models.Task{})).
+					DoAndReturn(func(task *models.Task) error {
+						if task.Title != "Learn Go Testing" {
+							t.Errorf("expected title %q, got %q", "Learn Go Testing", task.Title)
+						}
+
+						if task.Description != "Updated description" {
+							t.Errorf("expected description %q, got %q", "Updated description", task.Description)
+						}
+
+						if task.Status != "completed" {
+							t.Errorf("expected status %q, got %q", "completed", task.Status)
+						}
+
+						return nil
+					})
+			},
+			wantTask: &models.Task{
+				ID:          1,
+				Title:       "Learn Go Testing",
+				Description: "Updated description",
+				Status:      "completed",
+				User:        &models.User{ID: 1},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockTaskRepository(ctrl)
+			mockGemini := mocks.NewMockGeminiClient(ctrl)
+
+			tt.setupMock(mockRepo)
+
+			service := NewTaskService(mockRepo, mockGemini)
+
+			task, err := service.UpdateTask(
+				tt.userID,
+				tt.taskID,
+				tt.title,
+				tt.desc,
+				tt.status,
+			)
+
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("expected error %v, got %v", tt.wantErr, err)
+			}
+
+			if !reflect.DeepEqual(task, tt.wantTask) {
+				t.Fatalf("expected %+v, got %+v", tt.wantTask, task)
+			}
+		})
+	}
+}
