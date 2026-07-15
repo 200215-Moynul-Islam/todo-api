@@ -11,6 +11,7 @@ import (
 )
 
 var errDatabase = errors.New("database error")
+var errGemini = errors.New("gemini error")
 
 func TestTaskService_CreateTask(t *testing.T) {
 	tests := []struct {
@@ -534,6 +535,61 @@ func TestTaskService_DeleteTask(t *testing.T) {
 
 			if ok != tt.wantOK {
 				t.Fatalf("expected %v, got %v", tt.wantOK, ok)
+			}
+		})
+	}
+}
+
+func TestTaskService_GenerateDescription(t *testing.T) {
+	tests := []struct {
+		name        string
+		title       string
+		setupMock   func(*mocks.MockGeminiClient)
+		wantDesc    string
+		wantErr     error
+	}{
+		{
+			name:  "gemini client error",
+			title: "  Learn Go  ",
+			setupMock: func(client *mocks.MockGeminiClient) {
+				client.EXPECT().
+					GenerateDescription("Learn Go").
+					Return("", errGemini)
+			},
+			wantErr: errGemini,
+		},
+		{
+			name:  "success",
+			title: "  Learn Go  ",
+			setupMock: func(client *mocks.MockGeminiClient) {
+				client.EXPECT().
+					GenerateDescription("Learn Go").
+					Return("Learn Go description", nil)
+			},
+			wantDesc: "Learn Go description",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockTaskRepository(ctrl)
+			mockGemini := mocks.NewMockGeminiClient(ctrl)
+
+			tt.setupMock(mockGemini)
+
+			service := NewTaskService(mockRepo, mockGemini)
+
+			desc, err := service.GenerateDescription(tt.title)
+
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("expected error %v, got %v", tt.wantErr, err)
+			}
+
+			if desc != tt.wantDesc {
+				t.Fatalf("expected description %q, got %q", tt.wantDesc, desc)
 			}
 		})
 	}
