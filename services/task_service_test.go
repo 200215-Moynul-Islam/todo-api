@@ -419,3 +419,122 @@ func TestTaskService_UpdateTask(t *testing.T) {
 		})
 	}
 }
+
+func TestTaskService_DeleteTask(t *testing.T) {
+	tests := []struct {
+		name      string
+		userID    int
+		taskID    int
+		setupMock func(*mocks.MockTaskRepository)
+		wantOK    bool
+		wantErr   error
+	}{
+		{
+			name:   "repository get error",
+			userID: 1,
+			taskID: 1,
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				repo.EXPECT().
+					GetByID(1).
+					Return(nil, errDatabase)
+			},
+			wantOK:  false,
+			wantErr: errDatabase,
+		},
+		{
+			name:   "task not found",
+			userID: 1,
+			taskID: 1,
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				repo.EXPECT().
+					GetByID(1).
+					Return(nil, nil)
+			},
+			wantOK: false,
+		},
+		{
+			name:   "task belongs to another user",
+			userID: 2,
+			taskID: 1,
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				repo.EXPECT().
+					GetByID(1).
+					Return(&models.Task{
+						ID:    1,
+						Title: "Task",
+						User: &models.User{
+							ID: 1,
+						},
+					}, nil)
+			},
+			wantOK: false,
+		},
+		{
+			name:   "repository delete error",
+			userID: 1,
+			taskID: 1,
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				repo.EXPECT().
+					GetByID(1).
+					Return(&models.Task{
+						ID:    1,
+						Title: "Task",
+						User: &models.User{
+							ID: 1,
+						},
+					}, nil)
+
+				repo.EXPECT().
+					Delete(1).
+					Return(false, errDatabase)
+			},
+			wantOK:  false,
+			wantErr: errDatabase,
+		},
+		{
+			name:   "success",
+			userID: 1,
+			taskID: 1,
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				repo.EXPECT().
+					GetByID(1).
+					Return(&models.Task{
+						ID:    1,
+						Title: "Task",
+						User: &models.User{
+							ID: 1,
+						},
+					}, nil)
+
+				repo.EXPECT().
+					Delete(1).
+					Return(true, nil)
+			},
+			wantOK: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockTaskRepository(ctrl)
+			mockGemini := mocks.NewMockGeminiClient(ctrl)
+
+			tt.setupMock(mockRepo)
+
+			service := NewTaskService(mockRepo, mockGemini)
+
+			ok, err := service.DeleteTask(tt.userID, tt.taskID)
+
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("expected error %v, got %v", tt.wantErr, err)
+			}
+
+			if ok != tt.wantOK {
+				t.Fatalf("expected %v, got %v", tt.wantOK, ok)
+			}
+		})
+	}
+}
