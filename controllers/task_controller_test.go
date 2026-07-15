@@ -10,6 +10,7 @@ import (
 	"testing"
 	"todo-api/mocks"
 	"todo-api/models"
+	"todo-api/services"
 	"todo-api/utils"
 
 	"github.com/beego/beego/v2/server/web/context"
@@ -82,32 +83,19 @@ func TestTaskController_GenerateDescription(t *testing.T) {
 
 			mockService := mocks.NewMockTaskService(ctrl)
 
-			originalService := taskService
-			taskService = mockService
-			defer func() {
-				taskService = originalService
-			}()
+			restore := replaceTaskService(mockService)
+			defer restore()
 
 			if tt.setupMock != nil {
 				tt.setupMock(mockService)
 			}
 
-			req := httptest.NewRequest(
+			ctx, rec := newTestContext(
 				http.MethodPost,
-				"/tasks/generate-description",
-				strings.NewReader(tt.body),
+				"/tasks",
+				tt.body,
+				tt.authenticated,
 			)
-			req.Header.Set("Content-Type", "application/json")
-
-			rec := httptest.NewRecorder()
-
-			ctx := context.NewContext()
-			ctx.Reset(rec, req)
-			ctx.Input.RequestBody = []byte(tt.body)
-
-			if tt.authenticated {
-				ctx.Input.SetData("userID", 1)
-			}
 
 			controller := &TaskController{}
 			controller.Ctx = ctx
@@ -239,32 +227,19 @@ func TestTaskController_Create(t *testing.T) {
 
 			mockService := mocks.NewMockTaskService(ctrl)
 
-			originalService := taskService
-			taskService = mockService
-			defer func() {
-				taskService = originalService
-			}()
+			restore := replaceTaskService(mockService)
+			defer restore()
 
 			if tt.setupMock != nil {
 				tt.setupMock(mockService)
 			}
 
-			req := httptest.NewRequest(
+			ctx, rec := newTestContext(
 				http.MethodPost,
 				"/tasks",
-				strings.NewReader(tt.body),
+				tt.body,
+				tt.authenticated,
 			)
-			req.Header.Set("Content-Type", "application/json")
-
-			rec := httptest.NewRecorder()
-
-			ctx := context.NewContext()
-			ctx.Reset(rec, req)
-			ctx.Input.RequestBody = []byte(tt.body)
-
-			if tt.authenticated {
-				ctx.Input.SetData("userID", 1)
-			}
 
 			controller := &TaskController{}
 			controller.Ctx = ctx
@@ -302,4 +277,30 @@ func TestTaskController_Create(t *testing.T) {
 			}
 		})
 	}
+}
+
+func replaceTaskService(mockTaskService services.TaskService) func() {
+    originalTaskService := taskService
+    taskService = mockTaskService
+
+    return func() {
+        taskService = originalTaskService
+    }
+}
+
+func newTestContext(method, url, body string, authenticated bool) (*context.Context, *httptest.ResponseRecorder) {
+    req := httptest.NewRequest(method, url, strings.NewReader(body))
+    req.Header.Set("Content-Type", "application/json")
+
+    rec := httptest.NewRecorder()
+
+    ctx := context.NewContext()
+    ctx.Reset(rec, req)
+    ctx.Input.RequestBody = []byte(body)
+
+    if authenticated {
+        ctx.Input.SetData("userID", 1)
+    }
+
+    return ctx, rec
 }
