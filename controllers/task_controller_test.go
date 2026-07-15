@@ -594,6 +594,193 @@ func TestTaskController_GetByID(t *testing.T) {
 	}
 }
 
+func TestTaskController_Update(t *testing.T) {
+	tests := []struct {
+		name          string
+		id            string
+		body          string
+		authenticated bool
+		setupMock     func(*mocks.MockTaskService)
+		wantStatus    int
+		wantMsg       string
+		wantTask      *models.Task
+	}{
+		{
+			name:          "unauthorized",
+			authenticated: false,
+			wantStatus:    http.StatusUnauthorized,
+			wantMsg:       utils.MsgUnauthorized,
+		},
+		{
+			name:          "invalid id",
+			id:            "abc",
+			authenticated: true,
+			wantStatus:    http.StatusBadRequest,
+			wantMsg:       utils.MsgInvalidTaskID,
+		},
+		{
+			name:          "id less than one",
+			id:            "0",
+			authenticated: true,
+			wantStatus:    http.StatusBadRequest,
+			wantMsg:       utils.MsgInvalidTaskID,
+		},
+		{
+			name:          "invalid request body",
+			id:            "1",
+			authenticated: true,
+			body:          `{"title":`,
+			wantStatus:    http.StatusBadRequest,
+			wantMsg:       utils.MsgInvalidRequestBody,
+		},
+		{
+			name:          "no fields provided",
+			id:            "1",
+			authenticated: true,
+			body:          `{}`,
+			wantStatus:    http.StatusBadRequest,
+			wantMsg:       utils.MsgAtLeastOneFieldRequired,
+		},
+		{
+			name:          "empty title",
+			id:            "1",
+			authenticated: true,
+			body:          `{"title":"   "}`,
+			wantStatus:    http.StatusBadRequest,
+			wantMsg:       utils.MsgTitleRequired,
+		},
+		{
+			name:          "empty status",
+			id:            "1",
+			authenticated: true,
+			body:          `{"status":"   "}`,
+			wantStatus:    http.StatusBadRequest,
+			wantMsg:       utils.MsgStatusRequired,
+		},
+		{
+			name:          "service error",
+			id:            "1",
+			authenticated: true,
+			body:          `{"title":"Updated Title"}`,
+			setupMock: func(service *mocks.MockTaskService) {
+				title := "Updated Title"
+
+				service.EXPECT().
+					UpdateTask(1, 1, &title, nil, nil).
+					Return(nil, errors.New("database error"))
+			},
+			wantStatus: http.StatusInternalServerError,
+			wantMsg:    utils.MsgFailedToUpdateTask,
+		},
+		{
+			name:          "task not found",
+			id:            "1",
+			authenticated: true,
+			body:          `{"title":"Updated Title"}`,
+			setupMock: func(service *mocks.MockTaskService) {
+				title := "Updated Title"
+
+				service.EXPECT().
+					UpdateTask(1, 1, &title, nil, nil).
+					Return(nil, nil)
+			},
+			wantStatus: http.StatusNotFound,
+			wantMsg:    utils.MsgTaskNotFound,
+		},
+		{
+			name:          "success",
+			id:            "1",
+			authenticated: true,
+			body:          `{"title":"Updated Title","status":"completed"}`,
+			setupMock: func(service *mocks.MockTaskService) {
+				title := "Updated Title"
+				status := "completed"
+
+				service.EXPECT().
+					UpdateTask(1, 1, &title, nil, &status).
+					Return(&models.Task{
+						ID:     1,
+						Title:  "Updated Title",
+						Status: "completed",
+						User: &models.User{
+							ID: 1,
+						},
+					}, nil)
+			},
+			wantStatus: http.StatusOK,
+			wantMsg:    utils.MsgTaskUpdated,
+			wantTask: &models.Task{
+				ID:     1,
+				Title:  "Updated Title",
+				Status: "completed",
+				User: &models.User{
+					ID: 1,
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockService := mocks.NewMockTaskService(ctrl)
+
+			restore := replaceTaskService(mockService)
+			defer restore()
+
+			if tt.setupMock != nil {
+				tt.setupMock(mockService)
+			}
+
+			ctx, rec := newTestContext(
+				http.MethodPut,
+				"/tasks/"+tt.id,
+				tt.body,
+				tt.authenticated,
+			)
+
+			ctx.Input.SetParam(":id", tt.id)
+
+			controller := &TaskController{}
+			controller.Ctx = ctx
+
+			controller.Update()
+
+			if rec.Code != tt.wantStatus {
+				t.Fatalf("expected status %d, got %d", tt.wantStatus, rec.Code)
+			}
+
+			var response struct {
+				Success bool         `json:"success"`
+				Message string       `json:"message"`
+				Data    *models.Task `json:"data"`
+			}
+
+			if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+				t.Fatalf("failed to decode response: %v", err)
+			}
+
+			if response.Success != (tt.wantStatus < 400) {
+				t.Fatalf("expected success %v, got %v", tt.wantStatus < 400, response.Success)
+			}
+
+			if response.Message != tt.wantMsg {
+				t.Fatalf("expected message %q, got %q", tt.wantMsg, response.Message)
+			}
+
+			if tt.wantTask != nil {
+				if !reflect.DeepEqual(response.Data, tt.wantTask) {
+					t.Fatalf("expected %+v, got %+v", tt.wantTask, response.Data)
+				}
+			} else if response.Data != nil {
+				t.Fatal("expected response data to be nil")
+			}
+		})
+	}
+}
+
 
 // Helper functions for testing
 func replaceTaskService(mockTaskService services.TaskService) func() {
