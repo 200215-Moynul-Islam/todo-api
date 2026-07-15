@@ -11,7 +11,7 @@ import (
 	"todo-api/utils"
 )
 
-var taskService = services.NewTaskService(
+var taskService services.TaskService = services.NewTaskService(
 	repositories.NewTaskRepository(),
 	clients.NewGeminiClient(),
 )

@@ -9,7 +9,7 @@ import (
 	"todo-api/utils"
 )
 
-var userService = services.NewUserService(repositories.NewUserRepository())
+var userService services.UserService= services.NewUserService(repositories.NewUserRepository())
 
 type AuthController struct {
 	BaseController
