@@ -17,6 +17,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+var errDatabase = errors.New("database error")
 var errGemini = errors.New("gemini error")
 
 func TestTaskController_GenerateDescription(t *testing.T) {
@@ -180,7 +181,7 @@ func TestTaskController_Create(t *testing.T) {
 						"Learn Go",
 						"Practice testing",
 					).
-					Return(nil, errors.New("database error"))
+					Return(nil, errDatabase)
 			},
 			wantStatus: http.StatusInternalServerError,
 			wantMsg:    utils.MsgFailedToCreateTask,
@@ -331,7 +332,7 @@ func TestTaskController_GetAll(t *testing.T) {
 			setupMock: func(service *mocks.MockTaskService) {
 				service.EXPECT().
 					GetAllTasks(1, "pending", 2, 5).
-					Return(nil, errors.New("database error"))
+					Return(nil, errDatabase)
 			},
 			wantStatus: http.StatusInternalServerError,
 			wantMsg:    utils.MsgFailedToRetrieveTasks,
@@ -439,6 +440,152 @@ func TestTaskController_GetAll(t *testing.T) {
 			if tt.wantTasks != nil {
 				if !reflect.DeepEqual(response.Data, tt.wantTasks) {
 					t.Fatalf("expected %+v, got %+v", tt.wantTasks, response.Data)
+				}
+			} else if response.Data != nil {
+				t.Fatal("expected response data to be nil")
+			}
+		})
+	}
+}
+
+func TestTaskController_GetByID(t *testing.T) {
+	tests := []struct {
+		name          string
+		id            string
+		authenticated bool
+		setupMock     func(*mocks.MockTaskService)
+		wantStatus    int
+		wantMsg       string
+		wantTask      *models.Task
+	}{
+		{
+			name:          "unauthorized",
+			authenticated: false,
+			wantStatus:    http.StatusUnauthorized,
+			wantMsg:       utils.MsgUnauthorized,
+		},
+		{
+			name:          "invalid id",
+			id:            "abc",
+			authenticated: true,
+			wantStatus:    http.StatusBadRequest,
+			wantMsg:       utils.MsgInvalidTaskID,
+		},
+		{
+			name:          "id less than one",
+			id:            "0",
+			authenticated: true,
+			wantStatus:    http.StatusBadRequest,
+			wantMsg:       utils.MsgInvalidTaskID,
+		},
+		{
+			name:          "service error",
+			id:            "1",
+			authenticated: true,
+			setupMock: func(service *mocks.MockTaskService) {
+				service.EXPECT().
+					GetTaskByID(1, 1).
+					Return(nil, errDatabase)
+			},
+			wantStatus: http.StatusInternalServerError,
+			wantMsg:    utils.MsgFailedToRetrieveTask,
+		},
+		{
+			name:          "task not found",
+			id:            "1",
+			authenticated: true,
+			setupMock: func(service *mocks.MockTaskService) {
+				service.EXPECT().
+					GetTaskByID(1, 1).
+					Return(nil, nil)
+			},
+			wantStatus: http.StatusNotFound,
+			wantMsg:    utils.MsgTaskNotFound,
+		},
+		{
+			name:          "success",
+			id:            "1",
+			authenticated: true,
+			setupMock: func(service *mocks.MockTaskService) {
+				service.EXPECT().
+					GetTaskByID(1, 1).
+					Return(&models.Task{
+						ID:          1,
+						Title:       "Learn Go",
+						Description: "Practice testing",
+						Status:      "pending",
+						User: &models.User{
+							ID: 1,
+						},
+					}, nil)
+			},
+			wantStatus: http.StatusOK,
+			wantMsg:    utils.MsgTaskRetrieved,
+			wantTask: &models.Task{
+				ID:          1,
+				Title:       "Learn Go",
+				Description: "Practice testing",
+				Status:      "pending",
+				User: &models.User{
+					ID: 1,
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockService := mocks.NewMockTaskService(ctrl)
+
+			restore := replaceTaskService(mockService)
+			defer restore()
+
+			if tt.setupMock != nil {
+				tt.setupMock(mockService)
+			}
+
+			ctx, rec := newTestContext(
+				http.MethodGet,
+				"/tasks/"+tt.id,
+				"",
+				tt.authenticated,
+			)
+
+			ctx.Input.SetParam(":id", tt.id)
+
+			controller := &TaskController{}
+			controller.Ctx = ctx
+
+			controller.GetByID()
+
+			if rec.Code != tt.wantStatus {
+				t.Fatalf("expected status %d, got %d", tt.wantStatus, rec.Code)
+			}
+
+			var response struct {
+				Success bool         `json:"success"`
+				Message string       `json:"message"`
+				Data    *models.Task `json:"data"`
+			}
+
+			if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+				t.Fatalf("failed to decode response: %v", err)
+			}
+
+			if response.Success != (tt.wantStatus < 400) {
+				t.Fatalf("expected success %v, got %v", tt.wantStatus < 400, response.Success)
+			}
+
+			if response.Message != tt.wantMsg {
+				t.Fatalf("expected message %q, got %q", tt.wantMsg, response.Message)
+			}
+
+			if tt.wantTask != nil {
+				if !reflect.DeepEqual(response.Data, tt.wantTask) {
+					t.Fatalf("expected %+v, got %+v", tt.wantTask, response.Data)
 				}
 			} else if response.Data != nil {
 				t.Fatal("expected response data to be nil")
