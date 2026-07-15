@@ -175,3 +175,93 @@ func TestTaskService_GetAllTasks(t *testing.T) {
 		})
 	}
 }
+
+func TestTaskService_GetTaskByID(t *testing.T) {
+	expectedTask := &models.Task{
+		ID:          1,
+		Title:       "Learn Go",
+		Description: "Practice testing",
+		Status:      "pending",
+		User: &models.User{
+			ID: 1,
+		},
+	}
+
+	tests := []struct {
+		name      string
+		taskID    int
+		userID    int
+		setupMock func(*mocks.MockTaskRepository)
+		wantTask  *models.Task
+		wantErr   error
+	}{
+		{
+			name:   "repository error",
+			taskID: 1,
+			userID: 1,
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				repo.EXPECT().
+					GetByID(1).
+					Return(nil, errDatabase)
+			},
+			wantErr: errDatabase,
+		},
+		{
+			name:   "task not found",
+			taskID: 1,
+			userID: 1,
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				repo.EXPECT().
+					GetByID(1).
+					Return(nil, nil)
+			},
+			wantTask: nil,
+		},
+		{
+			name:   "task belongs to another user",
+			taskID: 1,
+			userID: 2,
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				repo.EXPECT().
+					GetByID(1).
+					Return(expectedTask, nil)
+			},
+			wantTask: nil,
+		},
+		{
+			name:   "success",
+			taskID: 1,
+			userID: 1,
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				repo.EXPECT().
+					GetByID(1).
+					Return(expectedTask, nil)
+			},
+			wantTask: expectedTask,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockTaskRepository(ctrl)
+			mockGemini := mocks.NewMockGeminiClient(ctrl)
+
+			tt.setupMock(mockRepo)
+
+			service := NewTaskService(mockRepo, mockGemini)
+
+			task, err := service.GetTaskByID(tt.userID, tt.taskID)
+
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("expected error %v, got %v", tt.wantErr, err)
+			}
+
+			if !reflect.DeepEqual(task, tt.wantTask) {
+				t.Fatalf("expected %+v, got %+v", tt.wantTask, task)
+			}
+		})
+	}
+}
