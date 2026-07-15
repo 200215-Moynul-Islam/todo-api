@@ -667,7 +667,7 @@ func TestTaskController_Update(t *testing.T) {
 
 				service.EXPECT().
 					UpdateTask(1, 1, &title, nil, nil).
-					Return(nil, errors.New("database error"))
+					Return(nil, errDatabase)
 			},
 			wantStatus: http.StatusInternalServerError,
 			wantMsg:    utils.MsgFailedToUpdateTask,
@@ -775,6 +775,130 @@ func TestTaskController_Update(t *testing.T) {
 					t.Fatalf("expected %+v, got %+v", tt.wantTask, response.Data)
 				}
 			} else if response.Data != nil {
+				t.Fatal("expected response data to be nil")
+			}
+		})
+	}
+}
+
+func TestTaskController_Delete(t *testing.T) {
+	tests := []struct {
+		name          string
+		id            string
+		authenticated bool
+		setupMock     func(*mocks.MockTaskService)
+		wantStatus    int
+		wantMsg       string
+	}{
+		{
+			name:          "unauthorized",
+			authenticated: false,
+			wantStatus:    http.StatusUnauthorized,
+			wantMsg:       utils.MsgUnauthorized,
+		},
+		{
+			name:          "invalid id",
+			id:            "abc",
+			authenticated: true,
+			wantStatus:    http.StatusBadRequest,
+			wantMsg:       utils.MsgInvalidTaskID,
+		},
+		{
+			name:          "id less than one",
+			id:            "0",
+			authenticated: true,
+			wantStatus:    http.StatusBadRequest,
+			wantMsg:       utils.MsgInvalidTaskID,
+		},
+		{
+			name:          "service error",
+			id:            "1",
+			authenticated: true,
+			setupMock: func(service *mocks.MockTaskService) {
+				service.EXPECT().
+					DeleteTask(1, 1).
+					Return(false, errDatabase)
+			},
+			wantStatus: http.StatusInternalServerError,
+			wantMsg:    utils.MsgFailedToDeleteTask,
+		},
+		{
+			name:          "task not found",
+			id:            "1",
+			authenticated: true,
+			setupMock: func(service *mocks.MockTaskService) {
+				service.EXPECT().
+					DeleteTask(1, 1).
+					Return(false, nil)
+			},
+			wantStatus: http.StatusNotFound,
+			wantMsg:    utils.MsgTaskNotFound,
+		},
+		{
+			name:          "success",
+			id:            "1",
+			authenticated: true,
+			setupMock: func(service *mocks.MockTaskService) {
+				service.EXPECT().
+					DeleteTask(1, 1).
+					Return(true, nil)
+			},
+			wantStatus: http.StatusOK,
+			wantMsg:    utils.MsgTaskDeleted,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockService := mocks.NewMockTaskService(ctrl)
+
+			restore := replaceTaskService(mockService)
+			defer restore()
+
+			if tt.setupMock != nil {
+				tt.setupMock(mockService)
+			}
+
+			ctx, rec := newTestContext(
+				http.MethodDelete,
+				"/tasks/"+tt.id,
+				"",
+				tt.authenticated,
+			)
+
+			ctx.Input.SetParam(":id", tt.id)
+
+			controller := &TaskController{}
+			controller.Ctx = ctx
+
+			controller.Delete()
+
+			if rec.Code != tt.wantStatus {
+				t.Fatalf("expected status %d, got %d", tt.wantStatus, rec.Code)
+			}
+
+			var response struct {
+				Success bool        `json:"success"`
+				Message string      `json:"message"`
+				Data    any `json:"data"`
+			}
+
+			if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+				t.Fatalf("failed to decode response: %v", err)
+			}
+
+			if response.Success != (tt.wantStatus < 400) {
+				t.Fatalf("expected success %v, got %v", tt.wantStatus < 400, response.Success)
+			}
+
+			if response.Message != tt.wantMsg {
+				t.Fatalf("expected message %q, got %q", tt.wantMsg, response.Message)
+			}
+
+			if response.Data != nil {
 				t.Fatal("expected response data to be nil")
 			}
 		})
