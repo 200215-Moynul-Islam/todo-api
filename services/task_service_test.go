@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 	"todo-api/mocks"
 	"todo-api/models"
@@ -100,6 +101,76 @@ func TestTaskService_CreateTask(t *testing.T) {
 
 			if task == nil {
 				t.Fatal("expected task")
+			}
+		})
+	}
+}
+
+func TestTaskService_GetAllTasks(t *testing.T) {
+	errDatabase := errors.New("database error")
+
+	expectedTasks := []models.Task{
+		{
+			ID:     1,
+			Title:  "Task 1",
+			Status: "pending",
+		},
+		{
+			ID:     2,
+			Title:  "Task 2",
+			Status: "completed",
+		},
+	}
+
+	tests := []struct {
+		name       string
+		status      string
+		setupMock   func(*mocks.MockTaskRepository)
+		wantTasks   []models.Task
+		wantErr     error
+	}{
+		{
+			name:   "repository error",
+			status: " pending ",
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				repo.EXPECT().
+					GetAll(1, "pending", 1, 10).
+					Return(nil, errDatabase)
+			},
+			wantErr: errDatabase,
+		},
+		{
+			name:   "success",
+			status: " pending ",
+			setupMock: func(repo *mocks.MockTaskRepository) {
+				repo.EXPECT().
+					GetAll(1, "pending", 1, 10).
+					Return(expectedTasks, nil)
+			},
+			wantTasks: expectedTasks,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockTaskRepository(ctrl)
+			mockGemini := mocks.NewMockGeminiClient(ctrl)
+
+			tt.setupMock(mockRepo)
+
+			service := NewTaskService(mockRepo, mockGemini)
+
+			tasks, err := service.GetAllTasks(1, tt.status, 1, 10)
+
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("expected error %v, got %v", tt.wantErr, err)
+			}
+
+			if !reflect.DeepEqual(tasks, tt.wantTasks) {
+				t.Fatalf("expected %+v, got %+v", tt.wantTasks, tasks)
 			}
 		})
 	}
