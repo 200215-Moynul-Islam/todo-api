@@ -279,6 +279,176 @@ func TestTaskController_Create(t *testing.T) {
 	}
 }
 
+func TestTaskController_GetAll(t *testing.T) {
+	tests := []struct {
+		name          string
+		url           string
+		authenticated bool
+		setupMock     func(*mocks.MockTaskService)
+		wantStatus    int
+		wantMsg       string
+		wantTasks     []models.Task
+	}{
+		{
+			name:          "unauthorized",
+			url:           "/tasks",
+			authenticated: false,
+			wantStatus:    http.StatusUnauthorized,
+			wantMsg:       utils.MsgUnauthorized,
+		},
+		{
+			name:          "invalid page",
+			url:           "/tasks?page=abc",
+			authenticated: true,
+			wantStatus:    http.StatusBadRequest,
+			wantMsg:       utils.MsgInvalidRequestBody,
+		},
+		{
+			name:          "page less than one",
+			url:           "/tasks?page=0",
+			authenticated: true,
+			wantStatus:    http.StatusBadRequest,
+			wantMsg:       utils.MsgInvalidRequestBody,
+		},
+		{
+			name:          "invalid limit",
+			url:           "/tasks?limit=abc",
+			authenticated: true,
+			wantStatus:    http.StatusBadRequest,
+			wantMsg:       utils.MsgInvalidRequestBody,
+		},
+		{
+			name:          "limit less than one",
+			url:           "/tasks?limit=0",
+			authenticated: true,
+			wantStatus:    http.StatusBadRequest,
+			wantMsg:       utils.MsgInvalidRequestBody,
+		},
+		{
+			name:          "service error",
+			url:           "/tasks?status=pending&page=2&limit=5",
+			authenticated: true,
+			setupMock: func(service *mocks.MockTaskService) {
+				service.EXPECT().
+					GetAllTasks(1, "pending", 2, 5).
+					Return(nil, errors.New("database error"))
+			},
+			wantStatus: http.StatusInternalServerError,
+			wantMsg:    utils.MsgFailedToRetrieveTasks,
+		},
+		{
+			name:          "success with defaults",
+			url:           "/tasks",
+			authenticated: true,
+			setupMock: func(service *mocks.MockTaskService) {
+				service.EXPECT().
+					GetAllTasks(1, "", 1, 10).
+					Return([]models.Task{
+						{
+							ID:     1,
+							Title:  "Task 1",
+							Status: "pending",
+						},
+					}, nil)
+			},
+			wantStatus: http.StatusOK,
+			wantMsg:    utils.MsgTasksRetrieved,
+			wantTasks: []models.Task{
+				{
+					ID:     1,
+					Title:  "Task 1",
+					Status: "pending",
+				},
+			},
+		},
+		{
+			name:          "success with query parameters",
+			url:           "/tasks?status=completed&page=2&limit=5",
+			authenticated: true,
+			setupMock: func(service *mocks.MockTaskService) {
+				service.EXPECT().
+					GetAllTasks(1, "completed", 2, 5).
+					Return([]models.Task{
+						{
+							ID:     2,
+							Title:  "Task 2",
+							Status: "completed",
+						},
+					}, nil)
+			},
+			wantStatus: http.StatusOK,
+			wantMsg:    utils.MsgTasksRetrieved,
+			wantTasks: []models.Task{
+				{
+					ID:     2,
+					Title:  "Task 2",
+					Status: "completed",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockService := mocks.NewMockTaskService(ctrl)
+
+			restore := replaceTaskService(mockService)
+			defer restore()
+
+			if tt.setupMock != nil {
+				tt.setupMock(mockService)
+			}
+
+			ctx, rec := newTestContext(
+				http.MethodGet,
+				tt.url,
+				"",
+				tt.authenticated,
+			)
+
+			controller := &TaskController{}
+			controller.Ctx = ctx
+
+			controller.GetAll()
+
+			if rec.Code != tt.wantStatus {
+				t.Fatalf("expected status %d, got %d", tt.wantStatus, rec.Code)
+			}
+
+			var response struct {
+				Success bool            `json:"success"`
+				Message string          `json:"message"`
+				Data    []models.Task   `json:"data"`
+			}
+
+			if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+				t.Fatalf("failed to decode response: %v", err)
+			}
+
+			if response.Success != (tt.wantStatus < 400) {
+				t.Fatalf("expected success %v, got %v", tt.wantStatus < 400, response.Success)
+			}
+
+			if response.Message != tt.wantMsg {
+				t.Fatalf("expected message %q, got %q", tt.wantMsg, response.Message)
+			}
+
+			if tt.wantTasks != nil {
+				if !reflect.DeepEqual(response.Data, tt.wantTasks) {
+					t.Fatalf("expected %+v, got %+v", tt.wantTasks, response.Data)
+				}
+			} else if response.Data != nil {
+				t.Fatal("expected response data to be nil")
+			}
+		})
+	}
+}
+
+
+// Helper functions for testing
 func replaceTaskService(mockTaskService services.TaskService) func() {
     originalTaskService := taskService
     taskService = mockTaskService
