@@ -39,7 +39,7 @@ func (r *postgresTaskRepository) GetAll(userID int, status string, page, limit i
 
 	// Apply offset pagination calculation
 	offset := (page - 1) * limit
-	_, err := qs.Limit(limit, offset).All(&tasks)
+	_, err := qs.OrderBy("-created_at").Limit(limit, offset).All(&tasks)
 
 	if err != nil {
 		return nil, err
